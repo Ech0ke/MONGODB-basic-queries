@@ -1,4 +1,4 @@
-export const portData = [
+const portData = [
   {
     Name: "Port A",
     Location: "Location A",
@@ -10,3 +10,5 @@ export const portData = [
     Services: ["Service 3", "Service 4"],
   },
 ];
+
+module.exports = { portData };
