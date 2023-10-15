@@ -79,6 +79,40 @@ async function main() {
 
     console.log(`Container count headed to each port:\n\n`);
     console.log(groupContainersByPortResult);
+
+    const groupShipsByCargoQuery = [
+      {
+        $group: {
+          _id: {
+            hasCargo: {
+              $cond: {
+                if: { $eq: ["$Cargo", null] },
+                then: "Non cargo ships",
+                else: "Cargo ships",
+              },
+            },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          Type: "$_id.hasCargo",
+          Count: "$count",
+          _id: 0,
+        },
+      },
+    ];
+
+    const groupShipsByCargoResult = await shipCollection
+      .aggregate(groupShipsByCargoQuery)
+      .toArray();
+
+    console.log(`Type${" ".repeat(22)}Count`);
+    groupShipsByCargoResult.forEach((result) => {
+      const type = result.Type + " ".repeat(30 - result.Type.length);
+      console.log(`${type}${result.Count}`);
+    });
   } finally {
     // Close the connection
     await client.close();
