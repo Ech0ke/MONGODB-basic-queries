@@ -25,9 +25,60 @@ async function main() {
       _id: portByIdObjectId,
     });
 
-    console.log(firstPort._id.toString());
-    console.log(secondPort);
-    console.log(` found port ${portById}`);
+    // console.log(firstPort._id.toString());
+    // console.log(secondPort);
+    // console.log(` found port ${portById}`);
+
+    const allCargos = await shipCollection
+      .aggregate([
+        {
+          $unwind: "$Cargo",
+        },
+        {
+          $project: {
+            _id: 0,
+            ShipName: "$Name",
+            CargoType: "$Cargo.Type",
+            CargoQuantity: "$Cargo.Quantity",
+            CargoWeight: "$Cargo.Weight",
+            DestinationPortID: "$Cargo.DestinationPortID",
+          },
+        },
+      ])
+      .toArray();
+
+    console.log(`Every cargo from every ship:\n\n`);
+    console.log(allCargos);
+
+    const groupContainersByPortQuery = [
+      {
+        $lookup: {
+          from: "Ship",
+          localField: "_id",
+          foreignField: "Cargo.DestinationPortID",
+          as: "ships",
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          Name: 1,
+          Location: 1,
+          ContainerCount: {
+            $size: {
+              $ifNull: ["$ships", []],
+            },
+          },
+        },
+      },
+    ];
+
+    const groupContainersByPortResult = await portCollection
+      .aggregate(groupContainersByPortQuery)
+      .toArray();
+
+    console.log(`Container count headed to each port:\n\n`);
+    console.log(groupContainersByPortResult);
   } finally {
     // Close the connection
     await client.close();
