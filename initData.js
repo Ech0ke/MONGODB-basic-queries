@@ -31,6 +31,16 @@ const portData = [
     ],
   },
   {
+    Name: "Port of Klaipeda",
+    Location: "Klaipeda, Lithuania",
+    Services: [
+      "Petroleum Terminal",
+      "Container Handling",
+      "Dry Docking",
+      "Ship Repairs",
+    ],
+  },
+  {
     Name: "Port of Miami",
     Location: "Miami, Florida, USA",
     Services: ["Bulk Cargo Terminal", "Cruise Ship Dock", "Ship Chandlery"],
