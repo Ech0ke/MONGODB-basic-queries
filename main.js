@@ -108,10 +108,68 @@ async function main() {
       .aggregate(groupShipsByCargoQuery)
       .toArray();
 
-    console.log(`Type${" ".repeat(22)}Count`);
+    console.log("\nShips grouped by type:");
+    console.log(`${"Type".padEnd(25, " ")}${"Count".padEnd(25, " ")}`);
     groupShipsByCargoResult.forEach((result) => {
-      const type = result.Type + " ".repeat(30 - result.Type.length);
-      console.log(`${type}${result.Count}`);
+      console.log(
+        `${result.Type.padEnd(25, " ")}${String(result.Count).padEnd(25, " ")}`
+      );
+    });
+
+    const sumContainerWeightQuery = [
+      {
+        $unwind: {
+          path: "$Cargo",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $group: {
+          _id: {
+            ShipName: "$Name",
+            ShipType: "$Type",
+            RegistrationNumber: "$RegistrationNumber",
+          },
+          TotalContainerWeight: {
+            $sum: "$Cargo.Weight",
+          },
+        },
+      },
+      {
+        $project: {
+          ShipName: "$_id.ShipName",
+          ShipType: "$_id.ShipType",
+          RegistrationNumber: "$_id.RegistrationNumber",
+          TotalContainerWeight: 1,
+          _id: 0,
+        },
+      },
+    ];
+
+    const sumContainerWeightResult = await shipCollection
+      .aggregate(sumContainerWeightQuery)
+      .toArray();
+
+    console.log("\nShips grouped by their total container weight:");
+    console.log(
+      `${"Ship Name".padEnd(25, " ")}${"Ship Type".padEnd(
+        25,
+        " "
+      )}${"Registration Number".padEnd(
+        25,
+        " "
+      )}${"Total Container Weight (tons)".padEnd(25, " ")}`
+    );
+    11;
+    sumContainerWeightResult.forEach((result) => {
+      console.log(
+        `${result.ShipName.padEnd(25, " ")}${result.ShipType.padEnd(
+          25,
+          " "
+        )}${result.RegistrationNumber.padEnd(25, " ")}${
+          result.TotalContainerWeight
+        }`
+      );
     });
   } finally {
     // Close the connection
