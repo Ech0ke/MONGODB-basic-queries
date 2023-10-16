@@ -8,47 +8,39 @@ async function main() {
   const client = new MongoClient(uri, { useUnifiedTopology: true });
 
   try {
+    // Connect to db
     await client.connect();
 
     const database = client.db();
     // Add data to db
     await initData(database);
 
+    // Get collections from db to perform operations
     const portCollection = database.collection("Port");
     const shipCollection = database.collection("Ship");
 
-    const firstPort = await portCollection.findOne({});
-    const secondPort = await portCollection.find({}).skip(1).next();
-
-    portByIdObjectId = new ObjectId(firstPort._id.toString());
-    const portById = await portCollection.findOne({
-      _id: portByIdObjectId,
-    });
-
-    // console.log(firstPort._id.toString());
-    // console.log(secondPort);
-    // console.log(` found port ${portById}`);
-
-    const allCargos = await shipCollection
-      .aggregate([
-        {
-          $unwind: "$Cargo",
+    const allCargosQuery = [
+      {
+        $unwind: "$Cargo",
+      },
+      {
+        $project: {
+          _id: 0,
+          ShipName: "$Name",
+          CargoType: "$Cargo.Type",
+          CargoQuantity: "$Cargo.Quantity",
+          CargoWeight: "$Cargo.Weight",
+          DestinationPortID: "$Cargo.DestinationPortID",
         },
-        {
-          $project: {
-            _id: 0,
-            ShipName: "$Name",
-            CargoType: "$Cargo.Type",
-            CargoQuantity: "$Cargo.Quantity",
-            CargoWeight: "$Cargo.Weight",
-            DestinationPortID: "$Cargo.DestinationPortID",
-          },
-        },
-      ])
+      },
+    ];
+
+    const allCargosResult = await shipCollection
+      .aggregate(allCargosQuery)
       .toArray();
 
-    console.log(`Every cargo from every ship:\n\n`);
-    console.log(allCargos);
+    console.log(`\nEvery cargo from every ship:`);
+    console.log(allCargosResult);
 
     const groupContainersByPortQuery = [
       {
@@ -77,7 +69,7 @@ async function main() {
       .aggregate(groupContainersByPortQuery)
       .toArray();
 
-    console.log(`Container count headed to each port:\n\n`);
+    console.log(`\nContainer count headed to each port:`);
     console.log(groupContainersByPortResult);
 
     const groupShipsByCargoQuery = [

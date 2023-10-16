@@ -79,7 +79,7 @@ async function initData(database) {
   // Drop current data
   await database.dropDatabase();
 
-  // Create the Port collection
+  // Create Port collection
   const portCollection = database.collection("Port");
   const portResult = await portCollection.insertMany(portData);
 
@@ -305,10 +305,9 @@ async function initData(database) {
         },
       ],
     },
-    // Add more ship objects as needed
   ];
 
-  // Create the Ship collection
+  // Create Ship collection
   const shipCollection = database.collection("Ship");
   const shipResult = await shipCollection.insertMany(shipData);
 
